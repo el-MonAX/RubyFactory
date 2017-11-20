@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# class Struct
-
 class Factory
   def self.new(*attributes, &block)
     class_name_from_string = attributes.shift.capitalize if attributes.first.is_a?(String)
