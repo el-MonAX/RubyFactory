@@ -7,9 +7,6 @@ class Factory
     class_name_from_string = attributes.shift.capitalize if attributes.first.is_a?(String)
     clas = Class.new do
       attr_accessor *attributes
-      # attributes.each do |attribute|
-      #   attr_accessor attribute
-      # end
 
       define_method :initialize do |*value|
         raise ArgumentError if value.length > attributes.length
@@ -33,7 +30,6 @@ class Factory
           raise IndexError unless instance_variables[attribute]
         end
         raise NameError unless instance_variable_get("@#{attribute}")
-        # What if instance_variable_get returns nil?
         instance_variable_set("@#{attribute}", value)
       end
 
