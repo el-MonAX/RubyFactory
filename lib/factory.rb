@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 # class Struct
-
 class Factory
   def self.new(*attributes, &block)
     class_name_from_string = attributes.shift.capitalize if attributes.first.is_a?(String)
-    clas = Class.new do
+    clazz = Class.new do
       attr_accessor *attributes
 
       define_method :initialize do |*value|
@@ -48,7 +47,15 @@ class Factory
       def eql?(other)
         self.class == other.class && to_a == other.to_a
       end
-      alias_method :==, :eql?
+      # alias_method :==, :eql?
+
+      def to_s
+        to_a <<  self.class
+      end
+
+      def ==(other)
+        to_s == other.to_s
+      end
 
       def to_h
         members.each_with_object({}) do |name, hash|
@@ -77,7 +84,7 @@ class Factory
       def inspect
         super().delete('@')
       end
-      alias_method :to_s, :inspect
+      # alias_method :to_s, :inspect
 
       def values_at(*indexes)
         indexes.map do |index|
@@ -88,7 +95,7 @@ class Factory
 
       class_eval(&block) if block_given?
     end
-    const_set(class_name_from_string, clas) if class_name_from_string
-    clas
+    const_set(class_name_from_string, clazz) if class_name_from_string
+    clazz
   end
 end
