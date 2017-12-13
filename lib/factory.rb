@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 # class Struct
-
 class Factory
   def self.new(*attributes, &block)
     class_name_from_string = attributes.shift.capitalize if attributes.first.is_a?(String)
-    class_name = Class.new do
-      attributes.each do |attribute|
-        attr_accessor attribute
-      end
+    clazz = Class.new do
+      attr_accessor *attributes
 
       define_method :initialize do |*value|
         raise ArgumentError if value.length > attributes.length
@@ -18,11 +15,9 @@ class Factory
       end
 
       def [](attribute)
-        if attribute.is_a? Numeric
+        if attribute.is_a?(Integer) || attribute.is_a?(Float)
           raise IndexError unless instance_variables[attribute.floor]
           instance_variable_get("@#{members[attribute]}")
-        elsif attribute.is_a? Float
-          instance_variable_get("@#{members[attribute.to_i]}")
         else
           raise NameError unless members.include?(attribute.to_sym)
           instance_variable_get("@#{attribute}")
@@ -50,22 +45,31 @@ class Factory
       end
 
       def eql?(other)
-        hash.eql?(other.hash)
+        self.class == other.class && to_a == other.to_a
       end
-      alias_method :==, :eql?
+      # alias_method :==, :eql?
 
-      def hash
-        Hash[instance_variables.map { |name| [name.to_s.delete('@').to_sym, instance_variable_get(name)] }]
+      def to_s
+        to_a <<  self.class
       end
-      alias_method :to_h, :hash
+
+      def ==(other)
+        to_s == other.to_s
+      end
+
+      def to_h
+        members.each_with_object({}) do |name, hash|
+          hash[name] = self[name]
+        end
+      end
 
       def length
         values.size
       end
       alias_method :size, :length
 
-      def members
-        instance_variables.map { |member| member.to_s.delete('@').to_sym }
+      define_method :members do
+        attributes.map(&:to_sym)
       end
 
       def select(&member_value)
@@ -80,7 +84,7 @@ class Factory
       def inspect
         super().delete('@')
       end
-      alias_method :to_s, :inspect
+      # alias_method :to_s, :inspect
 
       def values_at(*indexes)
         indexes.map do |index|
@@ -91,7 +95,7 @@ class Factory
 
       class_eval(&block) if block_given?
     end
-    const_set(class_name_from_string, class_name) if class_name_from_string
-    class_name
+    const_set(class_name_from_string, clazz) if class_name_from_string
+    clazz
   end
 end
